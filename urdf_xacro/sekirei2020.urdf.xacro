@@ -1,0 +1,87 @@
+<robot name="sekirei2020" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- This file is for ROS system -->
+
+
+    <!-- include macros -->
+
+    <xacro:include filename="macros_sekirei2020_parameters.urdf.xacro" />
+    <xacro:include filename="macros_track.urdf.xacro" />
+
+
+
+    <!-- macro -->
+
+     <xacro:macro name="make_fixed_joint" params="prefix x y z">
+        <joint name="joint_of_${prefix}" type="fixed">
+            <parent link="center_unit"/>
+            <child  link="${prefix}_body"/>
+            <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:macro name="make_flipper_joint" params="prefix parent x y z">
+
+        <joint name="joint_of_${prefix}" type="revolute">
+            <parent link="${parent}_body"/>
+            <child  link="${prefix}_body"/>
+            <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+	        <axis xyz = "0 1 0"/>
+            <limit lower="-3.14" upper="3.14" effort="25" velocity="1"/>
+            <dynamics damping="0.5"/>
+        </joint>
+
+        <transmission name="transmission_of_${prefix}">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="joint_of_${prefix}">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="motor_of_${prefix}">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+                <mechanismReduction>1</mechanismReduction>
+            </actuator>
+        </transmission>
+
+    </xacro:macro>
+
+
+    <!-- URDF -->
+
+    <link name="center_unit">
+        <inertial>
+            <mass value="${mass_of_center_unit}"/>
+            <inertia ixx="${mass_of_center_unit * (width_of_center_unit * width_of_center_unit + height_of_center_unit * height_of_center_unit) / 12}" ixy="0" ixz="0" iyy="${mass_of_center_unit * (height_of_center_unit * height_of_center_unit + length_of_center_unit * length_of_center_unit) / 12}" iyz="0" izz="${mass_of_center_unit * (length_of_center_unit * length_of_center_unit + width_of_center_unit * width_of_center_unit) / 12}" />
+        </inertial>
+        <visual>
+            <geometry>
+                <box size="${length_of_center_unit} ${width_of_center_unit} ${height_of_center_unit}" />
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${length_of_center_unit} ${width_of_center_unit} ${height_of_center_unit}" />
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- joints between center unit and a main crawler -->
+    <xacro:make_fixed_joint prefix="left_crawler"  x="0.0" y="${width_of_center_unit/2}"      z="${height_of_center_unit-(2*radius_of_crawler)}" />
+    <xacro:make_fixed_joint prefix="right_crawler" x="0.0" y="${-1*(width_of_center_unit/2)}" z="${height_of_center_unit-(2*radius_of_crawler)}" />
+
+    <!-- main crawlers -->
+    <xacro:make_track_body prefix="left_crawler"  mass="${mass_of_crawler}" distance_between_shafts="${distance_between_shafts_of_crawler}" width="${width_of_crawler}" radius="${radius_of_crawler}" x="0" y="${width_of_crawler/2}"      />
+    <xacro:make_track_body prefix="right_crawler" mass="${mass_of_crawler}" distance_between_shafts="${distance_between_shafts_of_crawler}" width="${width_of_crawler}" radius="${radius_of_crawler}" x="0" y="${-1*(width_of_crawler/2)}" />
+
+    <!-- joints between a main crawler and a flipper -->
+    <xacro:make_flipper_joint prefix="front_left_flipper"  parent="left_crawler"  x="${distance_between_shafts_of_crawler/2}"    y="${width_of_crawler+(width_of_flipper/2)}"      z="0" />
+    <xacro:make_flipper_joint prefix="front_right_flipper" parent="right_crawler" x="${distance_between_shafts_of_crawler/2}"    y="${-1*(width_of_crawler+(width_of_flipper/2))}" z="0" />
+    <xacro:make_flipper_joint prefix="rear_left_flipper"   parent="left_crawler"  x="${-1*distance_between_shafts_of_crawler/2}" y="${width_of_crawler+(width_of_flipper/2)}"      z="0" />
+    <xacro:make_flipper_joint prefix="rear_right_flipper"  parent="right_crawler" x="${-1*distance_between_shafts_of_crawler/2}" y="${-1*(width_of_crawler+(width_of_flipper/2))}" z="0" />
+
+    <!-- flippers(sub crawlers) -->
+    <xacro:make_track_body prefix="front_left_flipper"  mass="${mass_of_flipper}" distance_between_shafts="${distance_between_shafts_of_flipper}" width="${width_of_flipper}" radius="${radius_of_flipper}" x="${distance_between_shafts_of_flipper/2}"      />
+    <xacro:make_track_body prefix="front_right_flipper" mass="${mass_of_flipper}" distance_between_shafts="${distance_between_shafts_of_flipper}" width="${width_of_flipper}" radius="${radius_of_flipper}" x="${distance_between_shafts_of_flipper/2}"      />
+    <xacro:make_track_body prefix="rear_left_flipper"   mass="${mass_of_flipper}" distance_between_shafts="${distance_between_shafts_of_flipper}" width="${width_of_flipper}" radius="${radius_of_flipper}" x="${-1*(distance_between_shafts_of_flipper/2)}" />
+    <xacro:make_track_body prefix="rear_right_flipper"  mass="${mass_of_flipper}" distance_between_shafts="${distance_between_shafts_of_flipper}" width="${width_of_flipper}" radius="${radius_of_flipper}" x="${-1*(distance_between_shafts_of_flipper/2)}" />
+
+</robot>

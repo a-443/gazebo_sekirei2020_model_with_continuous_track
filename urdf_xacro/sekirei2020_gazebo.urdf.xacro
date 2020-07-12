@@ -1,0 +1,158 @@
+<robot name="sekirei2020" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- include -->
+
+    <xacro:include filename="macros_sekirei2020_parameters.urdf.xacro" />    
+    <xacro:include filename="$(find gazebo_continuous_track)/urdf_xacro/macros_track_gazebo.urdf.xacro" />
+    <xacro:include filename="$(find gazebo_continuous_track)/urdf_xacro/macros_track_simple_gazebo.urdf.xacro" />
+
+
+    <!-- macro -->
+    
+    <!-- belt for crawler and flipper -->
+
+    <xacro:macro name="make_material_of_belt">
+        <material>
+            <ambient>0.0 0.0 0.0 1</ambient>
+            <diffuse>0.0 0.0 0.0 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+            <emissive>0 0 0 1</emissive>
+        </material>
+    </xacro:macro>
+
+    <xacro:property name="track_material">
+        <material>
+            <ambient>0.0 0.0 0.0 1</ambient>
+            <diffuse>0.0 0.0 0.0 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+            <emissive>0 0 0 1</emissive>
+        </material>
+    </xacro:property>
+
+    <xacro:macro name="make_grousers" params="width num_of_grousers">
+        <xacro:insert_block name="track_material" />
+        <pattern>
+            <elements_per_round>${num_of_grousers}</elements_per_round>
+            <element>
+                <xacro:make_box_element pose="0 0 0 0 0 0" size="0.01 ${width-0.01} 0.01">
+                    <xacro:insert_block name="track_material" />
+                </xacro:make_box_element>
+            </element>
+            <element>
+                <xacro:make_polyline_element pose="0 ${(width/2)-0.005} 0 ${pi/2} 0 0">
+                    <polyline>
+                        <point>-0.01 -0.005</point>
+                        <point>-0.005 0.005</point>
+                        <point>0.005 0.005</point>
+                        <point>0.01 -0.005</point>
+                        <height>${width-0.01}</height>
+                    </polyline>
+                    <xacro:insert_block name="track_material" />
+                </xacro:make_polyline_element>
+            </element>
+        </pattern>
+    </xacro:macro>
+
+
+    <!-- devices -->
+
+    <xacro:macro name="make_camera" params="prefix parent x y z yaw">
+        <joint name="${prefix}_joint" type="fixed">
+            <parent link="${parent}"/>
+            <child  link="${prefix}_link"/>
+            <origin xyz="${x} ${y} ${z}" rpy="${radians(-90)} 0 ${radians(-90)}"/>
+        </joint>
+        <link name="${prefix}_link"/>
+        <gazebo reference="${prefix}_link">
+            <sensor type="camera" name="${prefix}">
+                <update_rate>10.0</update_rate>
+                <camera name="${prefix}">
+                    <pose>0 0 0 0 ${radians(-90+yaw)} ${radians(90)}</pose>
+                    <horizontal_fov>1.3962634</horizontal_fov>
+                    <image>
+                        <width>1920</width>
+                        <height>1080</height>
+                        <format>R8G8B8</format>
+                    </image>
+                    <clip>
+                        <near>0.02</near>
+                        <far>300</far>
+                    </clip>
+                    <noise>
+                        <type>gaussian</type>
+                        <mean>0.0</mean>
+                        <stddev>0.007</stddev>
+                    </noise>
+                </camera>
+                <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                    <alwaysOn>true</alwaysOn>
+                    <updateRate>0.0</updateRate>
+                    <cameraName>${prefix}</cameraName>
+                    <imageTopicName>image_raw</imageTopicName>
+                    <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                    <frameName>${prefix}_link</frameName>
+                    <hackBaseline>0.0</hackBaseline>
+                    <distortionK1>0.0</distortionK1>
+                    <distortionK2>0.0</distortionK2>
+                    <distortionK3>0.0</distortionK3>
+                    <distortionT1>0.0</distortionT1>
+                    <distortionT2>0.0</distortionT2>
+                </plugin>
+            </sensor>
+        </gazebo>
+    </xacro:macro>
+
+    
+
+
+    <!-- URDF -->
+
+    <!-- center unit and track of crawlers -->
+    <xacro:include filename="sekirei2020.urdf.xacro" />
+
+    <!-- camera -->
+    <xacro:make_camera prefix="front_camera" parent="center_unit" x="${length_of_center_unit/2}"      y="0" z="${height_of_center_unit}" yaw="0"   />
+    <xacro:make_camera prefix="rear_camera"  parent="center_unit" x="${-1*(length_of_center_unit/2)}" y="0" z="${height_of_center_unit}" yaw="180" />
+
+  
+    <!-- left crawler belt -->
+    <xacro:make_track name="left_crawler_track" y="${(width_of_center_unit/2)+(width_of_crawler/2)}" z="${height_of_center_unit-(2*radius_of_crawler)}" mass="${mass_of_crawler}" length="${distance_between_shafts_of_crawler}" radius="${radius_of_crawler}" width="${width_of_crawler-0.01}" parent="left_crawler_body" sprocket_joint="left_crawler_sprocket_axle" pitch_diameter="${pitch_diameter_of_crawler}">
+        <xacro:make_grousers width="${width_of_crawler}" num_of_grousers="10" />
+    </xacro:make_track>
+
+    <!-- right crawler belt -->
+    <xacro:make_track name="right_crawler_track" y="${-1*((width_of_center_unit/2)+(width_of_crawler/2))}" z="${height_of_center_unit-(2*radius_of_crawler)}" mass="${mass_of_crawler}" length="${distance_between_shafts_of_crawler}" radius="${radius_of_crawler}" width="${width_of_crawler-0.01}" parent="right_crawler_body" sprocket_joint="right_crawler_sprocket_axle" pitch_diameter="${pitch_diameter_of_crawler}">
+        <xacro:make_grousers width="${width_of_crawler}" num_of_grousers="10" />
+    </xacro:make_track>
+
+    <!-- front left flipper belt -->
+    <xacro:make_track_simple name="front_left_flipper_track" x="${(distance_between_shafts_of_crawler/2)+(distance_between_shafts_of_flipper/2)}" y="${(width_of_center_unit/2)+width_of_crawler+(width_of_flipper/2)}" z="${height_of_center_unit-(2*radius_of_crawler)}" mass="${mass_of_crawler}" length="${distance_between_shafts_of_flipper}" radius="${radius_of_flipper}" width="${width_of_flipper-0.01}" parent="front_left_flipper_body" sprocket_joint="front_left_flipper_sprocket_axle" pitch_diameter="${pitch_diameter_of_flipper}">
+        <xacro:make_material_of_belt />
+    </xacro:make_track_simple>
+
+    <!-- front right flipper belt -->
+    <xacro:make_track_simple name="front_right_flipper_track" x="${(distance_between_shafts_of_crawler/2)+(distance_between_shafts_of_flipper/2)}" y="${-1*((width_of_center_unit/2)+width_of_crawler+(width_of_flipper/2))}" z="${height_of_center_unit-(2*radius_of_crawler)}" mass="${mass_of_crawler}" length="${distance_between_shafts_of_flipper}" radius="${radius_of_flipper}" width="${width_of_flipper-0.01}" parent="front_right_flipper_body" sprocket_joint="front_right_flipper_sprocket_axle" pitch_diameter="${pitch_diameter_of_flipper}">
+        <xacro:make_material_of_belt />
+    </xacro:make_track_simple>
+
+    <!-- rear left flipper belt -->
+    <xacro:make_track_simple name="rear_left_flipper_track" x="${-1*((distance_between_shafts_of_crawler/2)+(distance_between_shafts_of_flipper/2))}" y="${(width_of_center_unit/2)+width_of_crawler+(width_of_flipper/2)}" z="${height_of_center_unit-(2*radius_of_crawler)}" mass="${mass_of_crawler}" length="${distance_between_shafts_of_flipper}" radius="${radius_of_flipper}" width="${width_of_flipper-0.01}" parent="rear_left_flipper_body" sprocket_joint="rear_left_flipper_sprocket_axle" pitch_diameter="${pitch_diameter_of_flipper}">
+        <xacro:make_material_of_belt />
+    </xacro:make_track_simple>
+
+    <!-- rear right flipper belt -->
+    <xacro:make_track_simple name="rear_right_flipper_track" x="${-1*((distance_between_shafts_of_crawler/2)+(distance_between_shafts_of_flipper/2))}" y="${-1*((width_of_center_unit/2)+width_of_crawler+(width_of_flipper/2))}" z="${height_of_center_unit-(2*radius_of_crawler)}" mass="${mass_of_crawler}" length="${distance_between_shafts_of_flipper}" radius="${radius_of_flipper}" width="${width_of_flipper-0.01}" parent="rear_right_flipper_body" sprocket_joint="rear_right_flipper_sprocket_axle" pitch_diameter="${pitch_diameter_of_flipper}">
+        <xacro:make_material_of_belt />
+    </xacro:make_track_simple>
+
+
+    <!-- ros_control for gazebo -->
+
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+            <legacyModeNS>false</legacyModeNS>
+        </plugin>
+    </gazebo>
+
+</robot>

@@ -1,0 +1,100 @@
+<launch>
+
+    <arg name="paused" default="true" />
+    <arg name="use_sim_time" default="true" />
+    <arg name="gui" default="true" />
+    <arg name="headless" default="false" />
+    <arg name="debug" default="false" />
+
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find gazebo_sekirei2020_model_with_continuous_track)/world/sekirei2020.world" />
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="paused" value="$(arg paused)" />
+        <arg name="use_sim_time" value="$(arg use_sim_time)" />
+        <arg name="headless" value="$(arg headless)" />
+    </include>
+
+
+    <node name="cmd_relay_for_left_crawler"        pkg="topic_tools" type="relay" args="/desired_left_crawler_cmd /sekirei2020/left_crawler_sprocket_velocity_controller/command"         output="screen" />
+    <node name="cmd_relay_for_right_crawler"       pkg="topic_tools" type="relay" args="/desired_right_crawler_cmd /sekirei2020/right_crawler_sprocket_velocity_controller/command"       output="screen" />
+
+    <node name="cmd_relay_for_front_left_flipper"  pkg="topic_tools" type="relay" args="/desired_left_crawler_cmd /sekirei2020/front_left_flipper_sprocket_velocity_controller/command"   output="screen" />
+    <node name="cmd_relay_for_front_right_flipper" pkg="topic_tools" type="relay" args="/desired_right_crawler_cmd /sekirei2020/front_right_flipper_sprocket_velocity_controller/command" output="screen" />
+    <node name="cmd_relay_for_rear_left_flipper"   pkg="topic_tools" type="relay" args="/desired_left_crawler_cmd /sekirei2020/rear_left_flipper_sprocket_velocity_controller/command"    output="screen" />
+    <node name="cmd_relay_for_rear_right_flipper"  pkg="topic_tools" type="relay" args="/desired_right_crawler_cmd /sekirei2020/rear_right_flipper_sprocket_velocity_controller/command"  output="screen" />
+
+
+    <group ns="sekirei2020">
+
+        <!-- Load the URDF into the ROS Parameter Server -->
+        <param name="robot_description" command="xacro --inorder '$(find gazebo_sekirei2020_model_with_continuous_track)/urdf_xacro/sekirei2020.urdf.xacro'" />
+
+        <rosparam>
+            joint_state_controller:
+                type: joint_state_controller/JointStateController
+                publish_rate: 10
+            left_crawler_sprocket_velocity_controller:
+                type: velocity_controllers/JointVelocityController
+                joint: left_crawler_sprocket_axle
+            right_crawler_sprocket_velocity_controller:
+                type: velocity_controllers/JointVelocityController
+                joint: right_crawler_sprocket_axle
+            front_left_flipper_position_controller:
+                type: effort_controllers/JointPositionController
+                joint: joint_of_front_left_flipper
+                pid: {p: 1000.0, i: 100.0, d: 10.0}
+            front_left_flipper_sprocket_velocity_controller:
+                type: velocity_controllers/JointVelocityController
+                joint: front_left_flipper_sprocket_axle
+            front_right_flipper_position_controller:
+                type: effort_controllers/JointPositionController
+                joint: joint_of_front_right_flipper
+                pid: {p: 1000.0, i: 100.0, d: 10.0}
+            front_right_flipper_sprocket_velocity_controller:
+                type: velocity_controllers/JointVelocityController
+                joint: front_right_flipper_sprocket_axle
+            rear_left_flipper_position_controller:
+                type: effort_controllers/JointPositionController
+                joint: joint_of_rear_left_flipper
+                pid: {p: 1000.0, i: 100.0, d: 10.0}
+            rear_left_flipper_sprocket_velocity_controller:
+                type: velocity_controllers/JointVelocityController
+                joint: rear_left_flipper_sprocket_axle
+            rear_right_flipper_position_controller:
+                type: effort_controllers/JointPositionController
+                joint: joint_of_rear_right_flipper
+                pid: {p: 1000.0, i: 100.0, d: 10.0}
+            rear_right_flipper_sprocket_velocity_controller:
+                type: velocity_controllers/JointVelocityController
+                joint: rear_right_flipper_sprocket_axle
+        </rosparam>
+
+        <!-- load and start the controllers -->
+        <node name="controller_starter"
+              pkg="controller_manager" 
+              type="controller_manager" 
+              args="spawn joint_state_controller
+                            left_crawler_sprocket_velocity_controller 
+                            right_crawler_sprocket_velocity_controller 
+                          front_left_flipper_position_controller 
+                          front_left_flipper_sprocket_velocity_controller 
+                          front_right_flipper_position_controller 
+                          front_right_flipper_sprocket_velocity_controller
+                          rear_left_flipper_position_controller 
+                          rear_left_flipper_sprocket_velocity_controller 
+                          rear_right_flipper_position_controller 
+                          rear_right_flipper_sprocket_velocity_controller"
+              output="screen"
+        />
+
+
+        <!-- convert joint states to TF transforms for rviz, etc -->
+        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen">
+            <param name="tf_prefix" value="sekirei2020" />
+        </node>
+    
+    </group>
+
+</launch>

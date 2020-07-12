@@ -1,0 +1,114 @@
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+
+    <!-- component macro -->
+
+    <xacro:macro name="make_box_inertia" params="mass size_x size_y size_z">
+        <inertial>
+            <mass value="${mass}" />
+            <inertia ixx="${mass * (size_y * size_y + size_z * size_z) / 12}" ixy="0" ixz="0" iyy="${mass * (size_z * size_z + size_x * size_x) / 12}" iyz="0" izz="${mass * (size_x * size_x + size_y * size_y) / 12}" />
+        </inertial>
+    </xacro:macro>
+
+    <xacro:macro name="make_wheel_inertia" params="mass radius length">
+        <inertial>
+            <mass value="${mass}" />
+            <!-- assuming axis of cylinder is y, not z -->
+            <inertia ixx="${mass * (radius * radius / 4 + length * length / 12)}" ixy="0" ixz="0" iyy="${mass * radius * radius / 2}" iyz="0" izz="${mass * (radius * radius / 4 + length * length / 12)}" />
+        </inertial>
+    </xacro:macro>
+
+    <!-- component macro -->
+
+
+    <xacro:macro name="make_track_body" params="prefix mass distance_between_shafts width radius x:=^|0 y:=^|0 z:=^|0">
+
+        <link name="${prefix}_body">
+            <xacro:make_box_inertia mass="${0.56*mass}" size_x="${distance_between_shafts-(2*radius)}" size_y="${width-0.01}" size_z="${0.8*(2*radius)}" />
+            <visual>
+                <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+                <geometry>
+                    <box size="${distance_between_shafts-(2*radius)} ${width} ${0.8*(2*radius)}" />
+                </geometry>
+            </visual>
+            <collision>
+                <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+                <geometry>
+                    <box size="${distance_between_shafts-(2*radius)+0.01} ${width-0.01} ${0.8*(2*radius)}" />
+                </geometry>
+            </collision>
+        </link>
+
+        <link name="${prefix}_sprocket">
+            <xacro:make_wheel_inertia mass="${0.12*mass}" radius="${0.8*radius}" length="${width-0.01}" />
+            <visual>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+                <geometry>
+                    <cylinder radius="${0.8*radius}" length="${width}" />
+                </geometry>
+            </visual>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.01 ${width} ${0.965*(2*radius)}" />
+                </geometry>
+            </visual>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <box size="${0.965*(2*radius)} ${width} 0.01" />
+                </geometry>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+                <geometry>
+                    <cylinder radius="${0.8*radius}" length="${width-0.01}" />
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="${prefix}_sprocket_axle" type="continuous">
+            <origin xyz="${(distance_between_shafts/2)+x} ${y} ${z}" rpy="0 0 0" />
+            <parent link="${prefix}_body" />
+            <child link="${prefix}_sprocket" />
+            <axis xyz="0 1 0" />
+        </joint>
+
+        <transmission name="${prefix}_sprocket_transmission">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${prefix}_sprocket_axle">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="${prefix}_sprocket_actuator">
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+
+        <!-- idler on the other side of the sprocket -->
+
+        <link name="${prefix}_idler">
+            <xacro:make_wheel_inertia mass="${0.12*mass}" radius="${0.8*radius}" length="${width-0.01}" />
+            <visual>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+                <geometry>
+                    <cylinder radius="${0.8*radius}" length="${width}" />
+                </geometry>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
+                <geometry>
+                    <cylinder radius="${0.8*radius}" length="${width-0.01}" />
+                </geometry>
+            </collision>
+        </link>
+    
+        <joint name="${prefix}_idler_axle" type="fixed">
+            <origin xyz="${(-1*(distance_between_shafts/2))+x} ${y} ${z}" rpy="0 0 0" />
+            <parent link="${prefix}_body" />
+            <child link="${prefix}_idler" />
+            <limit effort="100" velocity="100"/>
+        </joint>
+
+    </xacro:macro>
+
+</robot>
