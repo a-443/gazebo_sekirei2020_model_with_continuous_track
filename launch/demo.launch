@@ -25,6 +25,9 @@
     <node name="cmd_relay_for_rear_left_flipper"   pkg="topic_tools" type="relay" args="/cmd_vel /sekirei2020/rear_left_flipper_sprocket_velocity_controller/command"   output="screen" />
     <node name="cmd_relay_for_rear_right_flipper"  pkg="topic_tools" type="relay" args="/cmd_vel /sekirei2020/rear_right_flipper_sprocket_velocity_controller/command"  output="screen" />
 
+    <node name="cmd_relay_for_front_left_flipper"  pkg="topic_tools" type="relay" args="/cmd_pos /sekirei2020/front_left_flipper_position_controller/command"  output="screen" />
+    <node name="cmd_relay_for_front_right_flipper" pkg="topic_tools" type="relay" args="/cmd_pos /sekirei2020/front_right_flipper_position_controller/command" output="screen" />
+
 
     <group ns="sekirei2020">
 

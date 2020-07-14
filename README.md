@@ -27,7 +27,10 @@ catkin_make
 ```
 roslaunch gazebo_sekirei2020_model_with_continuous_track demo.launch
 ```
-2. send a velocity command
+2. send a velocity command to all crawlers
 ```
 rostopic pub -1 /cmd_vel std_msgs/Float64 "data: 0.5"
 ```
+3. send a position command to joint between main crawler and flipper
+```
+rostopic pub -1 /cmd_pos std_msgs/Float64 "data: 0.5"
