@@ -1,6 +1,6 @@
 # gazebo_sekirei2020_model_with_continuous_track
 
-## Overview of this package
+## Overview
 This package includes the robot model for gazebo. The model has 6 continuous tracks and 2 RGB cameras. Continuous tracks are simulated on the plugin shown following. Also this package was developed referencing the example by plugin developer.
 
 * plugin: [gazebo_continuous_track][1]
