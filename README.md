@@ -16,7 +16,7 @@ This model can work on only [the plugin][1] shown above, so confirm those packag
 And then, type following commands on the terminal:
 ```
 cd <your ROS workspace>/src
-git clone https://github.com/a-443/gazebo_sekirei2020_model_with_continuous_track.git
+git clone git@gitlab.com:rodep/gazebo_sekirei2020_model_with_continuous_track.git
 cd ..
 catkin_make
 ```
@@ -27,11 +27,13 @@ catkin_make
 ```
 roslaunch gazebo_sekirei2020_model_with_continuous_track demo.launch
 ```
-2. send a velocity command to all crawlers
+2. press the play button
+
+3. send a velocity command to all crawlers
 ```
 rostopic pub -1 /cmd_vel std_msgs/Float64 "data: 0.5"
 ```
-3. send a position command to joint between main crawler and flipper
+4. send a position command to joint between main crawler and flipper
 ```
 rostopic pub -1 /cmd_pos std_msgs/Float64 "data: 0.5"
 ```
