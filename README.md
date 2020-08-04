@@ -1,6 +1,8 @@
 # gazebo_sekirei2020_model_with_continuous_track
 
-## Overview
+![image](https://user-images.githubusercontent.com/34676615/89340159-43fba000-d6da-11ea-8af0-af709ff91d04.png)
+
+
 This package includes the robot model for gazebo. The model has 6 continuous tracks and 2 RGB cameras. Continuous tracks are simulated on the plugin shown following. Also this package was developed referencing the example by plugin developer.
 
 * plugin: [gazebo_continuous_track][1]
@@ -16,7 +18,7 @@ This model can work on only [the plugin][1] shown above, so confirm those packag
 And then, type following commands on the terminal:
 ```
 cd <your ROS workspace>/src
-git clone git@gitlab.com:rodep/gazebo_sekirei2020_model_with_continuous_track.git
+git clone git@github.com:a-443/gazebo_sekirei2020_model_with_continuous_track.git
 cd ..
 catkin_make
 ```
@@ -39,7 +41,7 @@ rostopic pub -1 /cmd_pos std_msgs/Float64 "data: 0.5"
 ```
 
 
-## About topics
+## Topics
 ### Subscribed topics
 * /desired_left_crawler_cmd (std_msgs/Float64)
 
